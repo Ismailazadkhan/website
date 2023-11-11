@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Name - Web & Graphic Designer</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            text-align: left;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        h1 {
+            margin: 0;
+            margin-left: 10px;
+        }
+
+	
+        
+
+        img {
+            margin-right: 10px;
+        }
+
+        section {
+            padding: 20px;
+            margin-top: 80px;
+	    margin-bottom: 0;
+	    margin-right: 20px;	 	
+    
+	}
+
+        h2 {
+            color: #333;
+        }
+
+        p {
+            color: #555;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #333;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        footer {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 5px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img src="C:\Users\bukhari\Desktop\pro\image.jpeg" width="100" height="100">
+        <div>
+            <h1>Ismail Azad Khan</h1>
+            <p>Web & Graphic Designer</p>
+        </div>
+    </header>
+
+	<br>
+    <section>
+	
+        <h2>Welcome to My Portfolio</h2>
+        <p>Hi, I'm Ismail azad khan, a passionate web and graphic designer. Explore my work and skills below.</p>
+        <a href="web-design" class="cta-button">Web Design</a>
+        <a href="graphic-design" class="cta-button">Graphic Design</a>
+        <a href="portfolio" class="cta-button">Portfolio</a>
+        <a href="contact-us" class="cta-button">Contact Us</a>
+        <a href="feedback" class="cta-button">Feedback</a>
+    </section>
+
+   	<section>
+        <h2>Web Design</h2>
+        <p>Experienced web developer proficient in HTML, CSS, and JavaScript. Specializing in crafting responsive, innovative, and user-centric digital solutions for optimal online experiences.</p>
+   	</section>
+    
+	<section>
+        <h2>Graphic Design</h2>
+        <p>Versatile graphic designer skilled in logo design, business cards, and visual branding using tools like Adobe Creative Suite.<br>
+            Specializing in creating visually stunning and impactful designs for a lasting impression.</p>
+    	</section>
+
+	<section>
+        <h2>Portfolio</h2>
+	<p>Crafting exceptional web experiences with HTML, CSS, and JavaScript. Elevating visual aesthetics through graphic design using tools like Adobe Creative Suite, Adobe photoshop, illustrator ensuring impactful and user-centric creations.</p>
+    	
+	</section>
+    
+	<footer>
+        <p>&copy; 2023 ismailazadkhan - Web & Graphic Designer</p>
+    </footer>
+
+</body>
+</html>
