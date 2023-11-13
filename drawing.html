@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drawing App</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: row;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #sidebar {
+            background-color: #f2f2f2;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        canvas {
+            border: 1px solid #000;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 8px;
+            font-size: 16px;
+        }
+
+        #colorPicker {
+            margin-top: 10px;
+        }
+
+        #pencilCursor {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background-color: #000;
+            border-radius: 50%;
+            pointer-events: none;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sidebar">
+        <h3>Options</h3>
+        <button id="removeBtn">Remove</button>
+        <button id="redoBtn">Redo</button>
+        <button id="eraserBtn">Eraser</button>
+        <h3>Shapes</h3>
+        <button id="freehandBtn">Freehand</button>
+        <button id="rectangleBtn">Rectangle</button>
+        <button id="circleBtn">Circle</button>
+        <h3>Colors</h3>
+        <button class="colorBtn" onclick="setColor('#000')" style="background-color: #000"></button>
+        <button class="colorBtn" onclick="setColor('#ff0000')" style="background-color: #ff0000"></button>
+        <button class="colorBtn" onclick="setColor('#00ff00')" style="background-color: #00ff00"></button>
+        <button class="colorBtn" onclick="setColor('#0000ff')" style="background-color: #0000ff"></button>
+        <input type="color" id="colorPicker" onchange="setCustomColor()">
+    </div>
+
+    <canvas id="drawingCanvas" width="800" height="500"></canvas>
+    <div id="pencilCursor"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const canvas = document.getElementById("drawingCanvas");
+            const ctx = canvas.getContext("2d");
+            const pencilCursor = document.getElementById("pencilCursor");
+            let isDrawing = false;
+            let drawingHistory = [];
+            let currentHistoryIndex = -1;
+            let isErasing = false;
+            let currentColor = "#000"; // Default color
+            let currentShape = "freehand"; // Default shape
+
+            function getCanvasMousePosition(e) {
+                const canvasRect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - canvasRect.left;
+                const mouseY = e.clientY - canvasRect.top;
+                return {
+                    x: mouseX,
+                    y: mouseY,
+                };
+            }
+
+            function updatePencilCursor(e) {
+                const mousePos = getCanvasMousePosition(e);
+                pencilCursor.style.left = `${mousePos.x - 8}px`;
+                pencilCursor.style.top = `${mousePos.y - 8}px`;
+            }
+
+            function startDrawing(e) {
+                isDrawing = true;
+                updatePencilCursor(e);
+                pencilCursor.style.display = "block";
+
+                if (currentShape === "freehand") {
+                    draw(e);
+                } else if (currentShape === "rectangle" || currentShape === "circle") {
+                    const mousePos = getCanvasMousePosition(e);
+                    ctx.beginPath();
+                    ctx.fillStyle = currentColor;
+                    ctx.strokeStyle = currentColor;
+                    ctx.lineWidth = 3;
+                    ctx.moveTo(mousePos.x, mousePos.y);
+                }
+            }
+
+            function stopDrawing() {
+                isDrawing = false;
+                ctx.beginPath();
+                saveDrawingState();
+                pencilCursor.style.display = "none";
+            }
+
+            function draw(e) {
+                if (!isDrawing) return;
+
+                ctx.lineWidth = isErasing ? 20 : 3;
+                ctx.lineCap = "round";
+                ctx.strokeStyle = isErasing ? "#fff" : currentColor;
+
+                const mousePos = getCanvasMousePosition(e);
+
+                ctx.lineTo(mousePos.x, mousePos.y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(mousePos.x, mousePos.y, ctx.lineWidth / 2, 0, Math.PI * 2);
+                ctx.fillStyle = isErasing ? "#fff" : currentColor;
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(mousePos.x, mousePos.y);
+            }
+
+            function drawRectangle(e) {
+                if (!isDrawing) return;
+
+                const mousePos = getCanvasMousePosition(e);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const startX = mousePos.x;
+                const startY = mousePos.y;
+
+                const width = e.clientX - startX;
+                const height = e.clientY - startY;
+
+                ctx.fillStyle = isErasing ? "#fff" : currentColor;
+                ctx.strokeStyle = isErasing ? "#fff" : currentColor;
+                ctx.lineWidth = 3;
+
+                ctx.beginPath();
+                ctx.rect(startX, startY, width, height);
+                ctx.closePath();
+
+                if (!isErasing) {
+                    ctx.fill();
+                }
+
+                ctx.stroke();
+            }
+
+            function drawCircle(e) {
+                if (!isDrawing) return;
+
+                const mousePos = getCanvasMousePosition(e);
+                const startX = mousePos.x;
+                const startY = mousePos.y;
+
+                const radius = Math.sqrt(Math.pow(e.clientX - startX, 2) + Math.pow(e.clientY - startY, 2));
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = isErasing ? "#fff" : currentColor;
+                ctx.strokeStyle = isErasing ? "#fff" : currentColor;
+                ctx.lineWidth = 3;
+
+                ctx.beginPath();
+                ctx.arc(startX, startY, radius, 0, 2 * Math.PI);
+                ctx.closePath();
+
+                if (!isErasing) {
+                    ctx.fill();
+                }
+
+                ctx.stroke();
+            }
+
+            function saveDrawingState() {
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                drawingHistory = drawingHistory.slice(0, currentHistoryIndex + 1);
+                drawingHistory.push(imageData);
+                currentHistoryIndex++;
+            }
+
+            function removeDrawing() {
+                if (currentHistoryIndex > 0) {
+                    currentHistoryIndex--;
+                    redraw();
+                }
+            }
+
+            function redoDrawing() {
+                if (currentHistoryIndex < drawingHistory.length - 1) {
+                    currentHistoryIndex++;
+                    redraw();
+                }
+            }
+
+            function toggleEraser() {
+                isErasing = !isErasing;
+                eraserBtn.textContent = isErasing ? "Drawing" : "Eraser";
+                ctx.lineWidth = isErasing ? 20 : 3;
+                ctx.globalCompositeOperation = isErasing ? "destination-out" : "source-over";
+            }
+
+            function setColor(color) {
+                currentColor = color;
+                ctx.globalCompositeOperation = "source-over";
+            }
+
+            function setCustomColor() {
+                const colorPicker = document.getElementById("colorPicker");
+                currentColor = colorPicker.value;
+                ctx.globalCompositeOperation = "source-over";
+            }
+
+            function redraw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.putImageData(drawingHistory[currentHistoryIndex], 0, 0);
+            }
+
+            const removeBtn = document.getElementById("removeBtn");
+            const redoBtn = document.getElementById("redoBtn");
+            const eraserBtn = document.getElementById("eraserBtn");
+            const freehandBtn = document.getElementById("freehandBtn");
+            const rectangleBtn = document.getElementById("rectangleBtn");
+            const circleBtn = document.getElementById("circleBtn");
+
+            removeBtn.addEventListener("click", removeDrawing);
+            redoBtn.addEventListener("click", redoDrawing);
+            eraserBtn.addEventListener("click", toggleEraser);
+            freehandBtn.addEventListener("click", function () {
+                currentShape = "freehand";
+                canvas.style.cursor = "none";
+            });
+            rectangleBtn.addEventListener("click", function () {
+                currentShape = "rectangle";
+                canvas.style.cursor = "crosshair";
+            });
+            circleBtn.addEventListener("click", function () {
+                currentShape = "circle";
+                canvas.style.cursor = "crosshair";
+            });
+
+            // Predefined color buttons
+            const colorButtons = document.querySelectorAll(".colorBtn");
+            colorButtons.forEach(button => {
+                button.addEventListener("click", function () {
+                    setColor(this.style.backgroundColor);
+                });
+            });
+
+            const colorPicker = document.getElementById("colorPicker");
+            colorPicker.addEventListener("change", setCustomColor);
+
+            canvas.addEventListener("mousedown", startDrawing);
+            canvas.addEventListener("mousemove", function (e) {
+                if (currentShape === "rectangle") {
+                    drawRectangle(e);
+                } else if (currentShape === "circle") {
+                    drawCircle(e);
+                } else {
+                    draw(e);
+                }
+                updatePencilCursor(e);
+            });
+            canvas.addEventListener("mouseup", stopDrawing);
+            canvas.addEventListener("mouseout", stopDrawing);
+        });
+    </script>
+</body>
+
+</html>
